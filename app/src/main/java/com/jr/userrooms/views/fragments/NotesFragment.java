@@ -1,6 +1,8 @@
 package com.jr.userrooms.views.fragments;
 
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -18,6 +20,7 @@ import com.jr.userrooms.config.Constants;
 import com.jr.userrooms.database.UserRoomDatabase;
 import com.jr.userrooms.database.entities.UserNotes;
 import com.jr.userrooms.utils.SharedPrefsUtils;
+import com.jr.userrooms.viewmodels.NotesViewModel;
 
 import java.util.List;
 import java.util.concurrent.Executor;
@@ -29,6 +32,7 @@ import java.util.concurrent.Executors;
 public class NotesFragment extends Fragment {
 
     private RecyclerView rv_notes;
+    private NotesViewModel notesViewModel;
 
 
     public NotesFragment() {
@@ -54,16 +58,23 @@ public class NotesFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        getAllNotes();
+//        getAllNotes();
     }
 
     private void initView(View view) {
         rv_notes = view.findViewById(R.id.rv_notes);
 
-        getAllNotes();
+        notesViewModel = ViewModelProviders.of(this).get(NotesViewModel.class);
+
+        notesViewModel.getAllNotesByUserId(SharedPrefsUtils.getIntegerPreference(getActivity(), Constants.USER_ID, 1))
+                .observe(this, userNotes -> {
+                    rv_notes.setAdapter(new NotesAdapter(getActivity(), userNotes));
+                });
+
+       // getAllNotes();
     }
 
-    private void getAllNotes() {
+    /*private void getAllNotes() {
         Executor myExecutor = Executors.newSingleThreadExecutor();
         myExecutor.execute(() -> {
             List<UserNotes> userNotes = UserRoomDatabase
@@ -80,5 +91,5 @@ public class NotesFragment extends Fragment {
                 }
             });
         });
-    }
+    }*/
 }

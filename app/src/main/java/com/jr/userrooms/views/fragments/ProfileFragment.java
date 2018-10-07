@@ -1,6 +1,8 @@
 package com.jr.userrooms.views.fragments;
 
 
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -23,6 +25,7 @@ import com.jr.userrooms.config.Constants;
 import com.jr.userrooms.database.UserRoomDatabase;
 import com.jr.userrooms.database.entities.User;
 import com.jr.userrooms.utils.SharedPrefsUtils;
+import com.jr.userrooms.viewmodels.UserViewModel;
 import com.jr.userrooms.views.activities.HomeActivity;
 import com.jr.userrooms.views.activities.LoginActivity;
 
@@ -41,7 +44,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private MaterialButton btn_edit_save;
     private TextInputEditText ti_name;
     private TextInputEditText ti_email;
-    private UserRoomDatabase userRoomDatabase;
+    private UserViewModel userViewModel;
 
 
     public ProfileFragment() {
@@ -74,27 +77,18 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         btn_edit_save.setOnClickListener(this);
 
+        userViewModel = ViewModelProviders.of(this).get(UserViewModel.class);
         getUserDetails();
     }
 
     private void getUserDetails() {
-        Executor myExecutor = Executors.newSingleThreadExecutor();
-        myExecutor.execute(() -> {
-
-            userRoomDatabase = UserRoomDatabase.getInstance(getContext());
-            User user = userRoomDatabase.getUserDao().getUserById(SharedPrefsUtils.getIntegerPreference(getContext(), Constants.USER_ID, 0));
-            Log.e("login_user==", new Gson().toJson(user));
-            Log.e("all_user==", new Gson().toJson(userRoomDatabase.getUserDao().getAllUser()));
-
-            getActivity().runOnUiThread(new Runnable() {
-                public void run() {
+        userViewModel.getUserById(SharedPrefsUtils.getIntegerPreference(getContext(), Constants.USER_ID, 0))
+                .observe(this, user -> {
                     tv_name.setText(user.getName());
                     ti_name.setText(user.getName());
                     tv_email.setText(user.getEmail());
                     ti_email.setText(user.getEmail());
-                }
-            });
-        });
+                });
     }
 
     @Override
@@ -113,23 +107,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private void updateUserProfileDetails() {
         if(!TextUtils.isEmpty(ti_email.getText().toString().trim())
                 && !TextUtils.isEmpty(ti_name.getText().toString().trim())){
-            Executor myExecutor = Executors.newSingleThreadExecutor();
-            myExecutor.execute(() -> {
+            userViewModel.updateUserProfile(SharedPrefsUtils.getIntegerPreference(getContext(), Constants.USER_ID, 0), ti_name.getText().toString().trim(), ti_email.getText().toString().trim());
 
-                userRoomDatabase.getUserDao().updateUserById(SharedPrefsUtils.getIntegerPreference(getContext(), Constants.USER_ID, 0), ti_name.getText().toString().trim(), ti_email.getText().toString().trim());
-                User user = userRoomDatabase.getUserDao().getUserById(SharedPrefsUtils.getIntegerPreference(getContext(), Constants.USER_ID, 0));
-                Log.e("login_user==", new Gson().toJson(user));
-                Log.e("all_user==", new Gson().toJson(userRoomDatabase.getUserDao().getAllUser()));
-
-                getActivity().runOnUiThread(new Runnable() {
-                    public void run() {
-                        tv_name.setText(user.getName());
-                        ti_name.setText(user.getName());
-                        tv_email.setText(user.getEmail());
-                        ti_email.setText(user.getEmail());
-                    }
-                });
-            });
             ll_profile_view.setVisibility(View.GONE);
             ll_edit_view.setVisibility(View.VISIBLE);
             btn_edit_save.setText(getString(R.string.edit_profile));

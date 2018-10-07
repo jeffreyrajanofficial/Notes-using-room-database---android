@@ -1,5 +1,6 @@
 package com.jr.userrooms.database.dao;
 
+import android.arch.lifecycle.LiveData;
 import android.arch.persistence.room.Dao;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
@@ -15,7 +16,7 @@ public interface NotesDao {
     List<UserNotes> getAllNotes();
 
     @Query("SELECT * FROM user_notes WHERE userId=:id")
-    List<UserNotes> getAllNotesByUserId(int id);
+    LiveData<List<UserNotes>> getAllNotesByUserId(int id);
 
     @Query("SELECT * FROM user_notes WHERE id=:id")
     List<UserNotes> getNoteById(int id);

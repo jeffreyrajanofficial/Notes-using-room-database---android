@@ -31,7 +31,8 @@
         android:gravity="start"
         android:inputType="text"
         android:hint="@string/description"
-        android:background="@drawable/notes_background"/>
+        android:background="@drawable/notes_background"
+        />
 
     <android.support.design.button.MaterialButton
         android:id="@+id/btn_save"
